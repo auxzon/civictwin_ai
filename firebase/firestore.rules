@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() { return request.auth != null; }
+    function isUser() { return isAuthenticated() &&
+      exists(/databases/$(database)/documents/users/$(request.auth.uid)); }
+
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    match /system_config/{configId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /ai_cache/{cacheId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /constituencies/{constId} {
+      allow read: if isAuthenticated();
+
+      match /wards/{wardId} {
+        allow read: if isAuthenticated();
+      }
+
+      match /signals/{signalId} {
+        allow read: if isAuthenticated();
+        allow write: if isUser();
+      }
+    }
+
+    match /mission_history/{historyId} {
+      allow read, write: if isUser() && request.resource.data.user_id == request.auth.uid;
+    }
+  }
+}

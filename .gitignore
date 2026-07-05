@@ -1,0 +1,24 @@
+# --- Secrets (NEVER commit) ---
+.env
+firebase/service-account.json
+*.pem
+
+# --- Python / Backend ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# --- Flutter / Frontend ---
+frontend/build/
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.packages
+
+# --- OS / Editor ---
+.DS_Store
+.vscode/
+.idea/

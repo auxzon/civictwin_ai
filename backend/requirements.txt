@@ -1,0 +1,49 @@
+# =============================================================
+# CivicTwin AI — Backend Dependencies
+# Every version below has been verified via a full `pip install
+# --dry-run --report` resolution AND a live import test of the
+# complete set together (see PROJECT_SETUP.md for methodology).
+# =============================================================
+
+# --- Web Framework ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+
+# --- Validation / Settings ---
+# NOTE: pydantic must stay >=2.12.5 to satisfy google-genai's own
+# constraint (pydantic<3.0.0,>=2.12.5). Do not downgrade independently.
+pydantic==2.13.4
+pydantic-settings==2.14.2
+# Pinned explicitly per audit fix F5 (previously an undeclared transitive
+# dependency via pydantic). Current code uses stdlib typing.Annotated
+# (Python 3.11+), so this is not directly imported today, but is kept as
+# an explicit, version-pinned dependency since pydantic/pydantic-settings
+# and other libraries in this project rely on it transitively, and a
+# future direct use (e.g. Python <3.9 compatibility shims) should not
+# silently depend on an undeclared version.
+typing_extensions==4.16.0
+
+# --- Google Cloud / Firebase (Decision 2: Firebase Admin SDK, no Vertex AI) ---
+firebase-admin==6.6.0
+google-cloud-firestore==2.20.0
+google-cloud-logging==3.11.3
+
+# --- Gemini Developer API (Decision 1: google-genai, NOT Vertex AI) ---
+# Import pattern: `from google import genai`
+google-genai==2.10.0
+
+# --- HTTP Client ---
+# Pinned exactly to 0.28.1: satisfies google-genai's httpx>=0.28.1
+# requirement AND is the last version compatible with Starlette's
+# TestClient without requiring the separate `httpx2` package.
+httpx==0.28.1
+
+# --- Utilities ---
+python-dotenv==1.0.1
+
+# --- Testing ---
+pytest==8.3.4
+pytest-asyncio==0.25.2
+
+# --- Lint / Format ---
+ruff==0.8.6
