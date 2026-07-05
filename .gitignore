@@ -22,3 +22,4 @@ frontend/.packages
 .DS_Store
 .vscode/
 .idea/
+.toolstate/
