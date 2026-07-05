@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_web_libraries_in_flutter
+// ignore_for_file: avoid_web_libraries_in_flutter, uri_does_not_exist
 import 'dart:async';
 import 'dart:js_util' as js_util;
 
@@ -47,7 +47,7 @@ class WebSpeechRecognizer {
         : 'webkitSpeechRecognition';
     final recognition = js_util.callConstructor(
       js_util.getProperty(window, ctorName) as Object,
-      const [],
+      const <Object?>[],
     );
     _recognition = recognition;
 
@@ -79,7 +79,7 @@ class WebSpeechRecognizer {
       }),
     );
 
-    js_util.callMethod(recognition, 'start', const []);
+    js_util.callMethod(recognition, 'start', const <Object?>[]);
 
     return completer.future;
   }
@@ -94,7 +94,7 @@ class WebSpeechRecognizer {
   void stop() {
     final recognition = _recognition;
     if (recognition != null) {
-      js_util.callMethod(recognition, 'stop', const []);
+      js_util.callMethod(recognition, 'stop', const <Object?>[]);
     }
   }
 }
