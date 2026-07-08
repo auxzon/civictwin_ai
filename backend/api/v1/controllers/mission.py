@@ -206,6 +206,6 @@ async def get_map_layers(
     signals = await repo.get_all_signals(constituency_id)
     return MapLayersResponse(
         wards=[MapWardResponse(**w.model_dump()) for w in wards],
-        signals=[MapSignalResponse(**s.model_dump()) for s in signals]
+        signals=[MapSignalResponse(**s.model_dump(exclude={"timestamp"})) for s in signals]
     )
 

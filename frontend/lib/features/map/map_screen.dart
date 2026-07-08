@@ -705,18 +705,29 @@ class _PremiumTopNav extends StatelessWidget {
             icon: Icons.map_outlined,
             label: 'Map',
             isActive: true,
+            onTap: () {},
           ),
           AppDesignSystem.width8,
           _NavItem(
             icon: Icons.analytics_outlined,
             label: 'Analytics',
             isActive: false,
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Analytics dashboard will be unlocked in the final release.')),
+              );
+            },
           ),
           AppDesignSystem.width8,
           _NavItem(
             icon: Icons.assessment_outlined,
             label: 'Reports',
             isActive: false,
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Reporting module will be unlocked in the final release.')),
+              );
+            },
           ),
 
           const Spacer(),
@@ -725,7 +736,11 @@ class _PremiumTopNav extends StatelessWidget {
           _TopNavIconButton(
             icon: Icons.notifications_none_outlined,
             tooltip: 'Notifications',
-            onTap: () {},
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('You have no new notifications.')),
+              );
+            },
           ),
           AppDesignSystem.width4,
           _TopNavIconButton(
@@ -738,7 +753,11 @@ class _PremiumTopNav extends StatelessWidget {
           _TopNavIconButton(
             icon: Icons.settings_outlined,
             tooltip: 'Settings',
-            onTap: () {},
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Settings are locked in the demo environment.')),
+              );
+            },
           ),
           AppDesignSystem.width16,
 
@@ -789,11 +808,13 @@ class _NavItem extends StatefulWidget {
     required this.icon,
     required this.label,
     required this.isActive,
+    required this.onTap,
   });
 
   final IconData icon;
   final String label;
   final bool isActive;
+  final VoidCallback onTap;
 
   @override
   State<_NavItem> createState() => _NavItemState();
@@ -809,7 +830,9 @@ class _NavItemState extends State<_NavItem> {
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      child: AnimatedContainer(
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
         duration: AppDesignSystem.durationFast,
         padding: const EdgeInsets.symmetric(
           horizontal: AppDesignSystem.space12,
@@ -850,6 +873,7 @@ class _NavItemState extends State<_NavItem> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

@@ -81,11 +81,11 @@ class Signal(BaseModel):
 
     id: str
     ward_id: str
-    category: Literal["Water", "Roads", "Health", "Electricity"]
+    category: str
     severity: int = Field(ge=1, le=10)
     coords: GeoPointModel
     description: str
-    status: Literal["Open", "Closed"]
+    status: str
     timestamp: datetime
 
 
