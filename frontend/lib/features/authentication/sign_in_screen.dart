@@ -277,17 +277,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> with TickerProvider
             icon: Icons.business_outlined,
           ),
         ),
-        const SizedBox(height: 24),
-        Text(
-          'Live Demonstration  •  Mumbai North Constituency',
-          style: _premiumTextStyle(
-            color: AppDesignSystem.textMuted,
-            fontWeight: FontWeight.w600,
-            fontSize: 10,
-            letterSpacing: 1.0,
-          ),
-          textAlign: TextAlign.center,
-        ),
       ],
     );
   }
@@ -497,49 +486,35 @@ class _BrandHeaderState extends State<_BrandHeader> with SingleTickerProviderSta
               ),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 48),
 
-          // 1. Brand Label
+          // 1. Hero Title - Product Name
           Text(
-            'CIVICTWIN AI',
+            'CivicTwin AI',
             style: _premiumTextStyle(
-              color: AppDesignSystem.textSecondary.withValues(alpha: 0.6),
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 4.0,
+              color: Colors.white,
+              fontSize: 48,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -1.5,
+              height: 1.1,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+
+          // 2. Supporting Statement
+          Text(
+            'The Digital Twin for City Decisions',
+            style: _premiumTextStyle(
+              color: AppDesignSystem.textSecondary.withValues(alpha: 0.8),
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.5,
+              height: 1.5,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-
-          // 2. Hero Title
-          Text(
-            'The Digital Twin\nfor City Decisions',
-            style: _premiumTextStyle(
-              color: Colors.white,
-              fontSize: 40,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.5,
-              height: 1.15,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20),
-
-          // 3. Supporting Sentence
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Text(
-              'Transforming civic data into live spatial intelligence.',
-              style: _premiumTextStyle(
-                color: AppDesignSystem.textSecondary,
-                fontWeight: FontWeight.w400,
-                fontSize: 14,
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
         ],
       ),
     );
