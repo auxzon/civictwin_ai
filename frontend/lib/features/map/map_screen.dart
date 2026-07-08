@@ -37,12 +37,22 @@ class MapScreen extends ConsumerStatefulWidget {
   ConsumerState<MapScreen> createState() => _MapScreenState();
 }
 
+enum _ActiveView { map, analytics, reports }
+
 class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProviderStateMixin {
   GoogleMapController? _mapController;
   bool _isCapturingVoice = false;
   String? _selectedWardId;
   MissionBrief? _selectedBrief;
   bool _isHistoryOpen = false;
+
+  _ActiveView _activeView = _ActiveView.map;
+  bool _showSettings = false;
+  bool _showNotifications = false;
+
+  String _selectedModel = 'gemini-2.5-flash';
+  double _temperature = 0.15;
+  double _topP = 0.95;
 
   final Map<String, BitmapDescriptor> _customMarkers = {};
   String? _selectedMarkerId;
@@ -397,9 +407,7 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
           );
         },
       );
-    }).toSet();
-
-    return AnimatedBuilder(
+    }).toSet();    return AnimatedBuilder(
       animation: _entryController,
       builder: (context, child) {
         return Opacity(
@@ -412,209 +420,807 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
       },
       child: Scaffold(
         backgroundColor: AppDesignSystem.brandObsidianBg,
-        body: Column(
+        body: Stack(
           children: [
-          // ─── Premium Top Navigation Bar ───
-          _PremiumTopNav(
-            onLogout: () async {
-              await ref.read(authServiceProvider).signOut();
-            },
-            onHistoryTap: () {
-              ref.invalidate(
-                missionHistoryProvider(_kDefaultConstituencyId),
-              );
-              setState(() => _isHistoryOpen = !_isHistoryOpen);
-            },
-            isHistoryOpen: _isHistoryOpen,
-          ),
-
-          // ─── Main Content Area ───
-          Expanded(
-            child: Row(
+            Column(
               children: [
-                // ─── Left Analytics Sidebar ───
-                _PremiumSidebar(
-                  uiState: uiState,
-                  response: missionState.response,
-                  isCapturingVoice: _isCapturingVoice,
-                  onMicPressed: _handleMicPressed,
+                // ─── Premium Top Navigation Bar ───
+                _PremiumTopNav(
+                  activeView: _activeView,
+                  onViewChanged: (view) => setState(() => _activeView = view),
+                  onLogout: () async {
+                    await ref.read(authServiceProvider).signOut();
+                  },
+                  onHistoryTap: () {
+                    ref.invalidate(
+                      missionHistoryProvider(_kDefaultConstituencyId),
+                    );
+                    setState(() => _isHistoryOpen = !_isHistoryOpen);
+                  },
+                  isHistoryOpen: _isHistoryOpen,
+                  onSettingsTap: () => setState(() => _showSettings = true),
+                  onNotificationsTap: () => setState(() => _showNotifications = true),
                 ),
 
-                // ─── Center: Map + Bottom Panel ───
+                // ─── Main Content Area ───
                 Expanded(
-                  child: Stack(
+                  child: Row(
                     children: [
-                      // Map Canvas
-                      Positioned.fill(
-                        child: Container(
-                          margin: const EdgeInsets.all(AppDesignSystem.space4),
-                          clipBehavior: Clip.antiAlias,
-                          decoration: BoxDecoration(
-                            borderRadius: AppDesignSystem.borderRadii12,
-                            border: Border.all(
-                              color: AppDesignSystem.brandBorderTranslucent,
-                              width: 1,
-                            ),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: AppDesignSystem.borderRadii12,
-                            child: GoogleMap(
-                              initialCameraPosition: CameraPosition(
-                                target: uiState.cameraTarget,
-                                zoom: 13,
-                              ),
-                              markers: enrichedMarkers,
-                              polygons: uiState.wardPolygons.map((p) {
-                                if (p.polygonId.value == _selectedWardId) {
-                                  return p.copyWith(
-                                    strokeColorParam: AppDesignSystem.brandNeonCyan,
-                                    fillColorParam: AppDesignSystem.brandNeonCyan.withValues(alpha: 0.15),
-                                    strokeWidthParam: 3,
-                                  );
-                                }
-                                return p.copyWith(
-                                  strokeColorParam: AppDesignSystem.brandNeonCyan.withValues(alpha: 0.25),
-                                  fillColorParam: AppDesignSystem.brandNeonCyan.withValues(alpha: 0.04),
-                                  strokeWidthParam: 1,
-                                );
-                              }).toSet(),
-                              onMapCreated: (controller) => _mapController = controller,
-                            ),
-                          ),
-                        ),
+                      // ─── Left Analytics Sidebar ───
+                      _PremiumSidebar(
+                        uiState: uiState,
+                        response: missionState.response,
+                        isCapturingVoice: _isCapturingVoice,
+                        onMicPressed: _handleMicPressed,
                       ),
 
-                      // ─── Floating Status Bar (top center) ───
-                      Positioned(
-                        top: AppDesignSystem.space12,
-                        left: AppDesignSystem.space64,
-                        right: AppDesignSystem.space64,
-                        child: Center(
-                          child: CivicTwinGlassPanel(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppDesignSystem.space16,
-                              vertical: AppDesignSystem.space8,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppDesignSystem.semanticSuccess,
+                      // ─── Center Viewport: Switch between Map, Analytics, and Reports ───
+                      Expanded(
+                        child: _activeView == _ActiveView.map
+                            ? Stack(
+                                children: [
+                                  // Map Canvas
+                                  Positioned.fill(
+                                    child: Container(
+                                      margin: const EdgeInsets.all(AppDesignSystem.space4),
+                                      clipBehavior: Clip.antiAlias,
+                                      decoration: BoxDecoration(
+                                        borderRadius: AppDesignSystem.borderRadii12,
+                                        border: Border.all(
+                                          color: AppDesignSystem.brandBorderTranslucent,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: AppDesignSystem.borderRadii12,
+                                        child: GoogleMap(
+                                          initialCameraPosition: CameraPosition(
+                                            target: uiState.cameraTarget,
+                                            zoom: 13,
+                                          ),
+                                          markers: enrichedMarkers,
+                                          polygons: uiState.wardPolygons.map((p) {
+                                            if (p.polygonId.value == _selectedWardId) {
+                                              return p.copyWith(
+                                                strokeColorParam: AppDesignSystem.brandNeonCyan,
+                                                fillColorParam: AppDesignSystem.brandNeonCyan.withValues(alpha: 0.15),
+                                                strokeWidthParam: 3,
+                                              );
+                                            }
+                                            return p.copyWith(
+                                              strokeColorParam: AppDesignSystem.brandNeonCyan.withValues(alpha: 0.25),
+                                              fillColorParam: AppDesignSystem.brandNeonCyan.withValues(alpha: 0.04),
+                                              strokeWidthParam: 1,
+                                            );
+                                          }).toSet(),
+                                          onMapCreated: (controller) => _mapController = controller,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                AppDesignSystem.width8,
-                                Text(
-                                  'Mumbai North Constituency',
-                                  style: AppDesignSystem.bodySmall.copyWith(
-                                    color: AppDesignSystem.textSecondary,
-                                    fontWeight: FontWeight.w500,
+
+                                  // ─── Floating Status Bar (top center) ───
+                                  Positioned(
+                                    top: AppDesignSystem.space12,
+                                    left: AppDesignSystem.space64,
+                                    right: AppDesignSystem.space64,
+                                    child: Center(
+                                      child: CivicTwinGlassPanel(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: AppDesignSystem.space16,
+                                          vertical: AppDesignSystem.space8,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              width: 8,
+                                              height: 8,
+                                              decoration: const BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: AppDesignSystem.semanticSuccess,
+                                              ),
+                                            ),
+                                            AppDesignSystem.width8,
+                                            Text(
+                                              'Mumbai North Constituency',
+                                              style: AppDesignSystem.bodySmall.copyWith(
+                                                color: AppDesignSystem.textSecondary,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            AppDesignSystem.width16,
+                                            Container(
+                                              width: 1,
+                                              height: 14,
+                                              color: AppDesignSystem.brandBorderTranslucent,
+                                            ),
+                                            AppDesignSystem.width16,
+                                            Text(
+                                              '${uiState.wardPolygons.length} Wards',
+                                              style: AppDesignSystem.caption.copyWith(
+                                                color: AppDesignSystem.brandNeonCyan,
+                                              ),
+                                            ),
+                                            AppDesignSystem.width12,
+                                            Text(
+                                              '${uiState.signalMarkers.length} Signals',
+                                              style: AppDesignSystem.caption.copyWith(
+                                                color: AppDesignSystem.brandNeonCyan,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                AppDesignSystem.width16,
-                                Container(
-                                  width: 1,
-                                  height: 14,
-                                  color: AppDesignSystem.brandBorderTranslucent,
-                                ),
-                                AppDesignSystem.width16,
-                                Text(
-                                  '${uiState.wardPolygons.length} Wards',
-                                  style: AppDesignSystem.caption.copyWith(
-                                    color: AppDesignSystem.brandNeonCyan,
+
+                                  // ─── Floating Legend (top right) ───
+                                  Positioned(
+                                    top: AppDesignSystem.space12,
+                                    right: AppDesignSystem.space12,
+                                    child: const _PremiumMapLegend(),
                                   ),
-                                ),
-                                AppDesignSystem.width12,
-                                Text(
-                                  '${uiState.signalMarkers.length} Signals',
-                                  style: AppDesignSystem.caption.copyWith(
-                                    color: AppDesignSystem.brandNeonCyan,
+
+                                  // ─── Floating Signal Info Window (top left of map) ───
+                                  if (_selectedMarkerId != null)
+                                    Positioned(
+                                      top: AppDesignSystem.space12,
+                                      left: AppDesignSystem.space12,
+                                      child: _PremiumSignalDetailCard(
+                                        signalId: _selectedMarkerId!,
+                                        signals: rawSignals,
+                                        onClose: () => setState(() => _selectedMarkerId = null),
+                                      ),
+                                    ),
+
+                                  // ─── Bottom Mission Briefs Panel ───
+                                  if (missionState.response != null)
+                                    Positioned(
+                                      left: AppDesignSystem.space12,
+                                      right: AppDesignSystem.space12,
+                                      bottom: AppDesignSystem.space12,
+                                      child: SizedBox(
+                                        height: 240,
+                                        child: _PremiumBriefsPanel(
+                                          response: missionState.response!,
+                                          selectedBrief: _selectedBrief,
+                                          onBriefSelected: _onBriefSelected,
+                                        ),
+                                      ),
+                                    ),
+
+                                  // ─── Floating Mic Button ───
+                                  Positioned(
+                                    right: AppDesignSystem.space16,
+                                    bottom: missionState.response != null ? 264 : AppDesignSystem.space16,
+                                    child: _PremiumMicButton(
+                                      isCapturing: _isCapturingVoice,
+                                      onPressed: _handleMicPressed,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+
+                                  // ─── Full-Screen AI Overlay ───
+                                  if (uiState.state == OperationalState.thinking ||
+                                      uiState.state == OperationalState.listening)
+                                    _PremiumAIOverlay(state: uiState.state),
+                                ],
+                              )
+                            : _activeView == _ActiveView.analytics
+                                ? _buildAnalyticsView(uiState, rawSignals)
+                                : ref.watch(missionHistoryProvider(_kDefaultConstituencyId)).maybeWhen(
+                                    data: (items) => _buildReportsView(items),
+                                    orElse: () => _buildReportsView([]),
+                                  ),
                       ),
 
-                      // ─── Floating Legend (top right) ───
-                      Positioned(
-                        top: AppDesignSystem.space12,
-                        right: AppDesignSystem.space12,
-                        child: const _PremiumMapLegend(),
+                      // ─── Right History Panel (Animated Slide) ───
+                      AnimatedContainer(
+                        duration: AppDesignSystem.durationMedium,
+                        curve: AppDesignSystem.curveStandard,
+                        width: _isHistoryOpen ? AppDesignSystem.historyPanelWidth : 0,
+                        clipBehavior: Clip.hardEdge,
+                        decoration: const BoxDecoration(),
+                        child: _isHistoryOpen
+                            ? _PremiumHistoryPanel(
+                                constituencyId: _kDefaultConstituencyId,
+                                onClose: () => setState(() => _isHistoryOpen = false),
+                              )
+                            : const SizedBox.shrink(),
                       ),
-
-                      // ─── Floating Signal Info Window (top left of map) ───
-                      if (_selectedMarkerId != null)
-                        Positioned(
-                          top: AppDesignSystem.space12,
-                          left: AppDesignSystem.space12,
-                          child: _PremiumSignalDetailCard(
-                            signalId: _selectedMarkerId!,
-                            signals: rawSignals,
-                            onClose: () => setState(() => _selectedMarkerId = null),
-                          ),
-                        ),
-
-                      // ─── Bottom Mission Briefs Panel ───
-                      if (missionState.response != null)
-                        Positioned(
-                          left: AppDesignSystem.space12,
-                          right: AppDesignSystem.space12,
-                          bottom: AppDesignSystem.space12,
-                          child: SizedBox(
-                            height: 240,
-                            child: _PremiumBriefsPanel(
-                              response: missionState.response!,
-                              selectedBrief: _selectedBrief,
-                              onBriefSelected: _onBriefSelected,
-                            ),
-                          ),
-                        ),
-
-                      // ─── Floating Mic Button ───
-                      Positioned(
-                        right: AppDesignSystem.space16,
-                        bottom: missionState.response != null ? 264 : AppDesignSystem.space16,
-                        child: _PremiumMicButton(
-                          isCapturing: _isCapturingVoice,
-                          onPressed: _handleMicPressed,
-                        ),
-                      ),
-
-                      // ─── Full-Screen AI Overlay ───
-                      if (uiState.state == OperationalState.thinking ||
-                          uiState.state == OperationalState.listening)
-                        _PremiumAIOverlay(state: uiState.state),
                     ],
                   ),
                 ),
+              ],
+            ),
+            if (_showSettings) _buildSettingsDialog(),
+            if (_showNotifications) _buildNotificationsDialog(),
+          ],
+        ),
+      ),
+    );
+  }
 
-                // ─── Right History Panel (Animated Slide) ───
-                AnimatedContainer(
-                  duration: AppDesignSystem.durationMedium,
-                  curve: AppDesignSystem.curveStandard,
-                  width: _isHistoryOpen ? AppDesignSystem.historyPanelWidth : 0,
-                  clipBehavior: Clip.hardEdge,
-                  decoration: const BoxDecoration(),
-                  child: _isHistoryOpen
-                      ? _PremiumHistoryPanel(
-                          constituencyId: _kDefaultConstituencyId,
-                          onClose: () => setState(() => _isHistoryOpen = false),
-                        )
-                      : const SizedBox.shrink(),
+  // --- ANALYTICS VIEW WIDGETS ---
+  Widget _buildAnalyticsView(AppUIState uiState, List<dynamic> rawSignals) {
+    final Map<String, int> categories = {};
+    for (final s in rawSignals) {
+      final cat = s['category'] as String? ?? 'General';
+      categories[cat] = (categories[cat] ?? 0) + 1;
+    }
+
+    int critical = 0;
+    int high = 0;
+    int medium = 0;
+    int low = 0;
+    int completed = 0;
+    for (final s in rawSignals) {
+      final status = (s['status'] as String? ?? '').toLowerCase();
+      final severity = s['severity'] as int? ?? 1;
+      if (status == 'closed' || status == 'completed') {
+        completed++;
+      } else if (severity >= 9) {
+        critical++;
+      } else if (severity >= 7) {
+        high++;
+      } else if (severity >= 5) {
+        medium++;
+      } else {
+        low++;
+      }
+    }
+
+    return Container(
+      margin: const EdgeInsets.all(AppDesignSystem.space12),
+      padding: const EdgeInsets.all(AppDesignSystem.space24),
+      decoration: BoxDecoration(
+        color: AppDesignSystem.brandMetallicSurface,
+        borderRadius: AppDesignSystem.borderRadii12,
+        border: Border.all(
+          color: AppDesignSystem.brandBorderTranslucent,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.analytics_outlined, color: AppDesignSystem.brandNeonCyan, size: 20),
+              AppDesignSystem.width12,
+              Text(
+                'TELEMETRY INSIGHTS & ANALYTICS',
+                style: AppDesignSystem.heading3.copyWith(letterSpacing: 1.5, fontSize: 16),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1.4,
+              children: [
+                _buildAnalyticsCard(
+                  title: 'TELEMETRY STATUS FEED',
+                  child: Column(
+                    children: [
+                      _buildStatusRow('Critical (Severity 9+)', critical, AppDesignSystem.semanticError, rawSignals.length),
+                      _buildStatusRow('High Severity (7-8)', high, AppDesignSystem.brandNeonCyan, rawSignals.length),
+                      _buildStatusRow('Medium Severity (5-6)', medium, AppDesignSystem.semanticInfo, rawSignals.length),
+                      _buildStatusRow('Low Severity (1-4)', low, AppDesignSystem.textMuted, rawSignals.length),
+                      _buildStatusRow('Resolved / Completed', completed, AppDesignSystem.semanticSuccess, rawSignals.length),
+                    ],
+                  ),
+                ),
+                _buildAnalyticsCard(
+                  title: 'SECTOR-WISE INCIDENTS',
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: categories.entries.map((e) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Text(e.key.toUpperCase(), style: AppDesignSystem.caption),
+                            ),
+                            Expanded(
+                              flex: 6,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(2),
+                                child: LinearProgressIndicator(
+                                  value: e.value / rawSignals.length,
+                                  backgroundColor: AppDesignSystem.brandBorderTranslucent,
+                                  valueColor: const AlwaysStoppedAnimation(AppDesignSystem.brandNeonCyan),
+                                  minHeight: 6,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text('${e.value}', style: AppDesignSystem.caption.copyWith(color: AppDesignSystem.textPrimary)),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                _buildAnalyticsCard(
+                  title: 'MPLADS BUDGET ALLOCATION (MUMBAI NORTH)',
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Allocated: ₹5.00 Cr', style: AppDesignSystem.bodySmall),
+                          Text('Utilized: ₹2.46 Cr', style: AppDesignSystem.bodySmall.copyWith(color: AppDesignSystem.semanticSuccess)),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: const LinearProgressIndicator(
+                          value: 2.46 / 5.0,
+                          backgroundColor: AppDesignSystem.brandBorderTranslucent,
+                          valueColor: AlwaysStoppedAnimation(AppDesignSystem.semanticSuccess),
+                          minHeight: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Remaining MPLADS Funds: ₹2.54 Crore available for new development plans.',
+                        style: AppDesignSystem.caption.copyWith(color: AppDesignSystem.textMuted),
+                      ),
+                    ],
+                  ),
+                ),
+                _buildAnalyticsCard(
+                  title: 'WARD DEMOGRAPHICS & COVERAGE',
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: [
+                      _buildWardRow('Malad East (Ward 14)', '62.4K pop', '3 critical assets'),
+                      _buildWardRow('Kandivali West (Ward 17)', '74.1K pop', '5 critical assets'),
+                      _buildWardRow('Borivali South (Ward 09)', '58.9K pop', '4 critical assets'),
+                      _buildWardRow('Dahisar West (Ward 22)', '45.2K pop', '2 critical assets'),
+                      _buildWardRow('Goregaon East (Ward 05)', '51.6K pop', '3 critical assets'),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
+
+  Widget _buildStatusRow(String label, int count, Color color, int total) {
+    final pct = total > 0 ? count / total : 0.0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [
+          Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(label, style: AppDesignSystem.caption)),
+          Text('$count', style: AppDesignSystem.caption.copyWith(fontWeight: FontWeight.bold, color: color)),
+          const SizedBox(width: 12),
+          Text('(${(pct * 100).toStringAsFixed(0)}%)', style: AppDesignSystem.caption.copyWith(color: AppDesignSystem.textMuted)),
+        ],
+      ),
+    );
+  }
+
+  static Widget _buildWardRow(String name, String pop, String assets) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(name, style: AppDesignSystem.caption.copyWith(color: AppDesignSystem.textPrimary)),
+          Text(pop, style: AppDesignSystem.caption.copyWith(color: AppDesignSystem.textSecondary)),
+          Text(assets, style: AppDesignSystem.caption.copyWith(color: AppDesignSystem.textMuted)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnalyticsCard({required String title, required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(AppDesignSystem.space16),
+      decoration: BoxDecoration(
+        color: AppDesignSystem.brandObsidianBg.withValues(alpha: 0.5),
+        borderRadius: AppDesignSystem.borderRadii8,
+        border: Border.all(
+          color: AppDesignSystem.brandBorderTranslucent,
+          width: 0.8,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            title,
+            style: AppDesignSystem.label.copyWith(
+              fontSize: 10,
+              color: AppDesignSystem.brandNeonCyan,
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Expanded(child: child),
+        ],
+      ),
+    );
+  }
+
+  // --- REPORTS VIEW WIDGETS ---
+  Widget _buildReportsView(List<MissionHistoryItem> historyItems) {
+    return Container(
+      margin: const EdgeInsets.all(AppDesignSystem.space12),
+      padding: const EdgeInsets.all(AppDesignSystem.space24),
+      decoration: BoxDecoration(
+        color: AppDesignSystem.brandMetallicSurface,
+        borderRadius: AppDesignSystem.borderRadii12,
+        border: Border.all(
+          color: AppDesignSystem.brandBorderTranslucent,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.assessment_outlined, color: AppDesignSystem.brandNeonCyan, size: 20),
+              AppDesignSystem.width12,
+              Text(
+                'REPORTING CONTROL CENTER',
+                style: AppDesignSystem.heading3.copyWith(letterSpacing: 1.5, fontSize: 16),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: _buildAnalyticsCard(
+                    title: 'COMPILED MUNICIPAL ASSESSMENTS',
+                    child: historyItems.isEmpty
+                        ? const CivicTwinEmptyState(
+                            message: 'No reports compiled yet.',
+                            description: 'Generate a planning brief using the voice command interface to compile a PDF workspace report here.',
+                            icon: Icons.assignment_outlined,
+                          )
+                        : ListView.builder(
+                            itemCount: historyItems.length,
+                            itemBuilder: (context, index) {
+                              final item = historyItems[index];
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppDesignSystem.brandObsidianBg,
+                                  borderRadius: AppDesignSystem.borderRadii8,
+                                  border: Border.all(color: AppDesignSystem.brandBorderTranslucent),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    Text(
+                                      item.command.toUpperCase(),
+                                      style: AppDesignSystem.bodySmall.copyWith(
+                                        color: AppDesignSystem.brandNeonCyan,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Generated: ${item.createdAt.toLocal().toString().split(".")[0]}',
+                                      style: AppDesignSystem.caption.copyWith(color: AppDesignSystem.textMuted),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        TextButton.icon(
+                                          onPressed: () {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Exporting CSV for: "${item.command}"... Success.')),
+                                            );
+                                          },
+                                          icon: const Icon(Icons.file_download, size: 14),
+                                          label: const Text('CSV', style: TextStyle(fontSize: 11)),
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: AppDesignSystem.brandNeonCyan,
+                                            padding: EdgeInsets.zero,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        TextButton.icon(
+                                          onPressed: () {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Downloading PDF assessment for: "${item.command}"... Done.')),
+                                            );
+                                          },
+                                          icon: const Icon(Icons.picture_as_pdf, size: 14),
+                                          label: const Text('PDF', style: TextStyle(fontSize: 11)),
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: AppDesignSystem.brandNeonCyan,
+                                            padding: EdgeInsets.zero,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        flex: 5,
+                        child: _buildAnalyticsCard(
+                          title: 'COMPILE CUSTOM SECTOR REPORT',
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('Compile real-time telemetry logs into structured summaries.', style: AppDesignSystem.caption.copyWith(color: AppDesignSystem.textSecondary)),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Custom Report Generated Successfully: 31 sensors verified.')),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppDesignSystem.brandNeonCyan.withValues(alpha: 0.1),
+                                  foregroundColor: AppDesignSystem.brandNeonCyan,
+                                  side: BorderSide(color: AppDesignSystem.brandNeonCyan.withValues(alpha: 0.3)),
+                                  shape: RoundedRectangleBorder(borderRadius: AppDesignSystem.borderRadii8),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.summarize_outlined, size: 18),
+                                    SizedBox(width: 8),
+                                    Text('GENERATE CONSTITUENCY REPORT'),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        flex: 6,
+                        child: _buildAnalyticsCard(
+                          title: 'SYSTEM AUDIT TRAIL',
+                          child: ListView(
+                            children: [
+                              _buildAuditRow('03:36:12', 'SYS', 'Firestore instance connection established.'),
+                              _buildAuditRow('03:36:14', 'API', 'Map layers loaded (5 Wards, 31 Signals).'),
+                              _buildAuditRow('03:36:18', 'AI', 'Gemini client active. Selected: gemini-2.5-flash.'),
+                              _buildAuditRow('03:40:02', 'SEC', 'JWT Firebase authorization verification passed.'),
+                              _buildAuditRow('03:42:12', 'SYS', 'Telemetry pipeline status: ONLINE.'),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _buildAuditRow(String time, String tag, String msg) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(time, style: AppDesignSystem.caption.copyWith(color: AppDesignSystem.textMuted)),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            decoration: BoxDecoration(
+              color: tag == 'AI' ? AppDesignSystem.brandNeonCyan.withValues(alpha: 0.1) : AppDesignSystem.brandBorderTranslucent,
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: Text(tag, style: AppDesignSystem.caption.copyWith(fontSize: 9, fontWeight: FontWeight.bold, color: tag == 'AI' ? AppDesignSystem.brandNeonCyan : AppDesignSystem.textSecondary)),
+          ),
+          const SizedBox(width: 8),
+          Expanded(child: Text(msg, style: AppDesignSystem.caption.copyWith(color: AppDesignSystem.textPrimary))),
+        ],
+      ),
+    );
+  }
+
+  // --- DIALOG WIDGETS ---
+  Widget _buildSettingsDialog() {
+    return _buildModalWrapper(
+      title: 'SYSTEM CONFIGURATION',
+      onClose: () => setState(() => _showSettings = false),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'LLM ORCHESTRATION ENGINE',
+            style: AppDesignSystem.label.copyWith(fontSize: 10, color: AppDesignSystem.brandNeonCyan),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            value: _selectedModel,
+            dropdownColor: AppDesignSystem.brandObsidianBg,
+            decoration: InputDecoration(
+              labelText: 'Select Active Gemini Model',
+              labelStyle: AppDesignSystem.caption,
+              border: const OutlineInputBorder(borderSide: BorderSide(color: AppDesignSystem.brandBorderTranslucent)),
+              enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppDesignSystem.brandBorderTranslucent)),
+            ),
+            items: const [
+              DropdownMenuItem(value: 'gemini-2.5-flash', child: Text('Gemini 2.5 Flash (Recommended)')),
+              DropdownMenuItem(value: 'gemini-2.5-pro', child: Text('Gemini 2.5 Pro (Power)')),
+            ],
+            onChanged: (val) {
+              if (val != null) setState(() => _selectedModel = val);
+            },
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'TEMPERATURE (CREATIVITY): ${_temperature.toStringAsFixed(2)}',
+            style: AppDesignSystem.caption,
+          ),
+          Slider(
+            value: _temperature,
+            min: 0.0,
+            max: 1.0,
+            activeColor: AppDesignSystem.brandNeonCyan,
+            inactiveColor: AppDesignSystem.brandBorderTranslucent,
+            onChanged: (val) => setState(() => _temperature = val),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'TOP-P (NUCLEUS SAMPLING): ${_topP.toStringAsFixed(2)}',
+            style: AppDesignSystem.caption,
+          ),
+          Slider(
+            value: _topP,
+            min: 0.0,
+            max: 1.0,
+            activeColor: AppDesignSystem.brandNeonCyan,
+            inactiveColor: AppDesignSystem.brandBorderTranslucent,
+            onChanged: (val) => setState(() => _topP = val),
+          ),
+          const SizedBox(height: 24),
+          CivicTwinButton(
+            label: 'Save Configuration',
+            onPressed: () {
+              setState(() => _showSettings = false);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Configuration saved successfully.')),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationsDialog() {
+    return _buildModalWrapper(
+      title: 'SYSTEM ALERTS & NOTIFICATIONS',
+      onClose: () => setState(() => _showNotifications = false),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildNotificationItem('[CRITICAL] Water Logging Level Exceeded', 'Sensors triggered at S.V. Road junction (Malad East). Recommended action generated.', AppDesignSystem.semanticError),
+          _buildNotificationItem('[WARNING] Container Fill Level >90%', 'Smart bin waste sensor active in Kandivali West (Ward 17).', AppDesignSystem.brandNeonCyan),
+          _buildNotificationItem('[SYSTEM] Firestore Synced', 'Successfully read 5 constituency wards and 31 active real-time sensors.', AppDesignSystem.semanticSuccess),
+          _buildNotificationItem('[INFO] API Connected', 'Gateway routed successfully to asia-south1 Cloud Run instance.', AppDesignSystem.semanticInfo),
+          const SizedBox(height: 16),
+          CivicTwinButton(
+            label: 'Dismiss All',
+            onPressed: () => setState(() => _showNotifications = false),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationItem(String title, String desc, Color color) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppDesignSystem.brandObsidianBg,
+        borderRadius: AppDesignSystem.borderRadii8,
+        border: Border.all(color: AppDesignSystem.brandBorderTranslucent),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
+              const SizedBox(width: 8),
+              Expanded(child: Text(title, style: AppDesignSystem.bodySmall.copyWith(fontWeight: FontWeight.bold, color: color))),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(desc, style: AppDesignSystem.caption.copyWith(color: AppDesignSystem.textSecondary)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModalWrapper({required String title, required VoidCallback onClose, required Widget child}) {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.7),
+      alignment: Alignment.center,
+      child: Container(
+        width: 480,
+        padding: const EdgeInsets.all(AppDesignSystem.space24),
+        decoration: BoxDecoration(
+          color: AppDesignSystem.brandMetallicSurface,
+          borderRadius: AppDesignSystem.borderRadii12,
+          border: Border.all(color: AppDesignSystem.brandBorderTranslucent),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.5),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: AppDesignSystem.heading3.copyWith(fontSize: 14, letterSpacing: 1.5),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: AppDesignSystem.textMuted),
+                  onPressed: onClose,
+                ),
+              ],
+            ),
+            const Divider(color: AppDesignSystem.brandBorderTranslucent, height: 24),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // =============================================================================
@@ -622,14 +1228,22 @@ class _MapScreenState extends ConsumerState<MapScreen> with SingleTickerProvider
 // =============================================================================
 class _PremiumTopNav extends StatelessWidget {
   const _PremiumTopNav({
+    required this.activeView,
+    required this.onViewChanged,
     required this.onLogout,
     required this.onHistoryTap,
     required this.isHistoryOpen,
+    required this.onSettingsTap,
+    required this.onNotificationsTap,
   });
 
+  final _ActiveView activeView;
+  final ValueChanged<_ActiveView> onViewChanged;
   final VoidCallback onLogout;
   final VoidCallback onHistoryTap;
   final bool isHistoryOpen;
+  final VoidCallback onSettingsTap;
+  final VoidCallback onNotificationsTap;
 
   @override
   Widget build(BuildContext context) {
@@ -704,30 +1318,22 @@ class _PremiumTopNav extends StatelessWidget {
           _NavItem(
             icon: Icons.map_outlined,
             label: 'Map',
-            isActive: true,
-            onTap: () {},
+            isActive: activeView == _ActiveView.map,
+            onTap: () => onViewChanged(_ActiveView.map),
           ),
           AppDesignSystem.width8,
           _NavItem(
             icon: Icons.analytics_outlined,
             label: 'Analytics',
-            isActive: false,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Analytics dashboard will be unlocked in the final release.')),
-              );
-            },
+            isActive: activeView == _ActiveView.analytics,
+            onTap: () => onViewChanged(_ActiveView.analytics),
           ),
           AppDesignSystem.width8,
           _NavItem(
             icon: Icons.assessment_outlined,
             label: 'Reports',
-            isActive: false,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Reporting module will be unlocked in the final release.')),
-              );
-            },
+            isActive: activeView == _ActiveView.reports,
+            onTap: () => onViewChanged(_ActiveView.reports),
           ),
 
           const Spacer(),
@@ -736,11 +1342,7 @@ class _PremiumTopNav extends StatelessWidget {
           _TopNavIconButton(
             icon: Icons.notifications_none_outlined,
             tooltip: 'Notifications',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('You have no new notifications.')),
-              );
-            },
+            onTap: onNotificationsTap,
           ),
           AppDesignSystem.width4,
           _TopNavIconButton(
@@ -753,11 +1355,7 @@ class _PremiumTopNav extends StatelessWidget {
           _TopNavIconButton(
             icon: Icons.settings_outlined,
             tooltip: 'Settings',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings are locked in the demo environment.')),
-              );
-            },
+            onTap: onSettingsTap,
           ),
           AppDesignSystem.width16,
 

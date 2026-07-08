@@ -1,0 +1,22 @@
+{"users": [
+{
+  "localId": "XB0UVTXTmDVBwjKHtSPZp00cWXK2",
+  "email": "test@civictwin.dev",
+  "emailVerified": true,
+  "passwordHash": "8gOP4ALWi1SbTl/hXR1Vj4niixoZICcnneiTUVIwVSspCIdIJ8N6NKwUBCtntxieMbU5dWdiJ599tTiFZsVjWw==",
+  "salt": "QmJEKnA8NI6TjA==",
+  "displayName": "Demo User",
+  "createdAt": "1783493956517",
+  "disabled": false,
+  "providerUserInfo": []
+},
+{
+  "localId": "integration-test-user",
+  "lastSignedInAt": "1783440106335",
+  "createdAt": "1783363683324"
+},
+{
+  "localId": "test-verification-user",
+  "lastSignedInAt": "1783359765498",
+  "createdAt": "1783282758140"
+}]}
