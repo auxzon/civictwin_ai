@@ -246,9 +246,7 @@ def test_get_map_layers_success(client_with_mocks) -> None:
     mock_repo.get_wards.return_value = [_sample_ward()]
     mock_repo.get_all_signals.return_value = [_sample_signal()]
 
-    response = client.get(
-        "/api/v1/constituency/const_mumbai_north/map_layers"
-    )
+    response = client.get("/api/v1/constituency/const_mumbai_north/map_layers")
 
     assert response.status_code == 200
     body = response.json()
@@ -267,9 +265,6 @@ def test_get_map_layers_requires_authentication() -> None:
 
     app.dependency_overrides.clear()
     with TestClient(app) as client:
-        response = client.get(
-            "/api/v1/constituency/const_mumbai_north/map_layers"
-        )
+        response = client.get("/api/v1/constituency/const_mumbai_north/map_layers")
 
     assert response.status_code in (400, 401, 422)
-

@@ -91,22 +91,24 @@ def seed_historical_missions(db: firestore.Client) -> None:
     """Write historical missions into the mission_history collection, linked to demo user UID."""
     try:
         from firebase_admin import auth
+
         user = auth.get_user_by_email("test@civictwin.dev")
         user_id = user.uid
     except Exception as e:
         logger.warning("Could not fetch test@civictwin.dev UID: %s. Using fallback.", e)
         user_id = "test_user_fallback_uid"
 
-    from datetime import datetime, UTC, timedelta
+    from datetime import UTC, datetime, timedelta
+
     from scripts.mock_data import HISTORICAL_MISSIONS
-    
+
     collection_ref = db.collection("mission_history")
-    
+
     # Clean up existing history to prevent duplicates
     docs = collection_ref.where("user_id", "==", user_id).stream()
     for doc in docs:
         doc.reference.delete()
-        
+
     for item in HISTORICAL_MISSIONS:
         created_at = datetime.now(UTC) - timedelta(days=item["days_ago"])
         payload = {
@@ -118,8 +120,10 @@ def seed_historical_missions(db: firestore.Client) -> None:
             "created_at": created_at,
         }
         collection_ref.document(item["id"]).set(payload)
-        
-    logger.info("Seeded %d historical mission documents for UID: %s.", len(HISTORICAL_MISSIONS), user_id)
+
+    logger.info(
+        "Seeded %d historical mission documents for UID: %s.", len(HISTORICAL_MISSIONS), user_id
+    )
 
 
 def run() -> None:

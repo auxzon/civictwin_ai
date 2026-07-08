@@ -16,7 +16,6 @@ from pydantic import BaseModel, Field
 from domain.models.firestore import GeoPointModel
 
 
-
 class MissionBrief(BaseModel):
     """A single recommended plan, as returned to the Flutter client."""
 
@@ -95,4 +94,3 @@ class MapSignalResponse(BaseModel):
 class MapLayersResponse(BaseModel):
     wards: list[MapWardResponse]
     signals: list[MapSignalResponse]
-

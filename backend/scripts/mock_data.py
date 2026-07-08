@@ -33,7 +33,7 @@ CONSTITUENCY: dict[str, Any] = {
     "name": "Mumbai North",
     "state": "Maharashtra",
     "total_budget_allocated": 50_000_000,  # ₹5 Crore MPLADS pool
-    "budget_utilized": 24_600_000,        # ₹24.6L utilized baseline (from user request)
+    "budget_utilized": 24_600_000,  # ₹24.6L utilized baseline (from user request)
     "center": {"latitude": 19.215, "longitude": 72.845},
 }
 
@@ -176,7 +176,6 @@ SIGNALS: list[dict[str, Any]] = [
         "description": "Traffic signal cycle updated at WEH Malad intersection.",
         "status": "Closed",
     },
-
     # WARD 17 (Kandivali West)
     {
         "id": "sig_2001",
@@ -241,7 +240,6 @@ SIGNALS: list[dict[str, Any]] = [
         "description": "Sewage backup cleared at MG Road Sector 3.",
         "status": "Closed",
     },
-
     # WARD 09 (Borivali South)
     {
         "id": "sig_3001",
@@ -306,7 +304,6 @@ SIGNALS: list[dict[str, Any]] = [
         "description": "Defunct water fixtures and poor sanitation at Shimpoli public toilet complex.",
         "status": "Open",
     },
-
     # WARD 22 (Dahisar West)
     {
         "id": "sig_4001",
@@ -321,7 +318,7 @@ SIGNALS: list[dict[str, Any]] = [
         "id": "sig_4002",
         "ward_id": "ward_22",
         "category": "Flood Risk",
-        "severity": 10, # CRITICAL 4
+        "severity": 10,  # CRITICAL 4
         "coords": {"latitude": 19.2440, "longitude": 72.8690},
         "description": "Dahisar river banks overflowing into nearby residential lanes.",
         "status": "Open",
@@ -362,7 +359,6 @@ SIGNALS: list[dict[str, Any]] = [
         "description": "Pipeline valve leak resolved at link road junction.",
         "status": "Closed",
     },
-
     # WARD 05 (Goregaon East)
     {
         "id": "sig_5001",
@@ -440,17 +436,17 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Examine coordinates for underground gas lines",
                         "Excavate loose asphalt and prepare dry sub-base",
-                        "Lay hot-mix asphalt concrete and compact"
+                        "Lay hot-mix asphalt concrete and compact",
                     ],
                     "success_metrics": [
                         "Zero potholes reported along target 500m section",
-                        "Average vehicle speed restored to 40 km/h"
+                        "Average vehicle speed restored to 40 km/h",
                     ],
                     "timeline_decay_rate": 0.05,
-                    "alternative": "Temporary cold-mix application (short durability)."
+                    "alternative": "Temporary cold-mix application (short durability).",
                 }
-            ]
-        }
+            ],
+        },
     },
     {
         "id": "hist_02",
@@ -477,17 +473,17 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Deploy high-suction vacuum desilting machines",
                         "Remove solid plastic waste and debris manually",
-                        "Install iron protective screens at catchment points"
+                        "Install iron protective screens at catchment points",
                     ],
                     "success_metrics": [
                         "Storm water flow capacity increased by 150%",
-                        "Eliminated track flooding during peak rainfall"
+                        "Eliminated track flooding during peak rainfall",
                     ],
                     "timeline_decay_rate": 0.04,
-                    "alternative": "Manual cleaning only (highly inefficient, higher hazard)."
+                    "alternative": "Manual cleaning only (highly inefficient, higher hazard).",
                 }
-            ]
-        }
+            ],
+        },
     },
     {
         "id": "hist_03",
@@ -514,17 +510,17 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Replace corroded electrical cables and wiring poles",
                         "Install 42 high-efficiency LED luminaires",
-                        "Mount automatic photo-sensor switches on main poles"
+                        "Mount automatic photo-sensor switches on main poles",
                     ],
                     "success_metrics": [
                         "Light levels increased to standard 20 lux minimum",
-                        "Complete elimination of dark spots on residential paths"
+                        "Complete elimination of dark spots on residential paths",
                     ],
                     "timeline_decay_rate": 0.03,
-                    "alternative": "Individual bulb replacement without wire overhaul (leads to recurring trips)."
+                    "alternative": "Individual bulb replacement without wire overhaul (leads to recurring trips).",
                 }
-            ]
-        }
+            ],
+        },
     },
     {
         "id": "hist_04",
@@ -551,17 +547,17 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Perform thermal scan on substation transformer",
                         "Replace worn circuit breakers and isolator switches",
-                        "Upgrade oil cooling system and filters"
+                        "Upgrade oil cooling system and filters",
                     ],
                     "success_metrics": [
                         "Zero voltage fluctuations reported post-rehab",
-                        "Transformer operational temperature reduced by 15C"
+                        "Transformer operational temperature reduced by 15C",
                     ],
                     "timeline_decay_rate": 0.05,
-                    "alternative": "Load-shedding rotation (highly disruptive to residents)."
+                    "alternative": "Load-shedding rotation (highly disruptive to residents).",
                 }
-            ]
-        }
+            ],
+        },
     },
     {
         "id": "hist_05",
@@ -588,17 +584,17 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Replace corroded galvanized water piping with UPVC",
                         "Install sanitary fixtures, washbasins, and flush tanks",
-                        "Connect toilet outlet directly to municipal sewer line"
+                        "Connect toilet outlet directly to municipal sewer line",
                     ],
                     "success_metrics": [
                         "Consistent 24/7 pressurized water supply restored",
-                        "Reduction in neighborhood hygiene complaints"
+                        "Reduction in neighborhood hygiene complaints",
                     ],
                     "timeline_decay_rate": 0.04,
-                    "alternative": "Patch repair of valves without main pipe overhaul."
+                    "alternative": "Patch repair of valves without main pipe overhaul.",
                 }
-            ]
-        }
+            ],
+        },
     },
     {
         "id": "hist_06",
@@ -625,17 +621,17 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Cut and trim heavy tree trunks blocking pathways",
                         "Collect and haul organic waste to processing plant",
-                        "Repair damaged walkway tiles and benches"
+                        "Repair damaged walkway tiles and benches",
                     ],
                     "success_metrics": [
                         "All walking paths cleared of organic debris",
-                        "Public access restored to all sections of park"
+                        "Public access restored to all sections of park",
                     ],
                     "timeline_decay_rate": 0.02,
-                    "alternative": "Let debris decompose naturally (creates safety hazards)."
+                    "alternative": "Let debris decompose naturally (creates safety hazards).",
                 }
-            ]
-        }
+            ],
+        },
     },
     {
         "id": "hist_07",
@@ -662,17 +658,17 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Deploy mechanical dumper placer for swift loading",
                         "Clean bin surroundings with disinfectant solutions",
-                        "Reposition bins closer to pickup-friendly zones"
+                        "Reposition bins closer to pickup-friendly zones",
                     ],
                     "success_metrics": [
                         "Complete clearance of overflowing waste within 12 hours",
-                        "Zero complaints of organic odor from nearby shops"
+                        "Zero complaints of organic odor from nearby shops",
                     ],
                     "timeline_decay_rate": 0.06,
-                    "alternative": "Manual collection (slow, causes traffic blocks during day)."
+                    "alternative": "Manual collection (slow, causes traffic blocks during day).",
                 }
-            ]
-        }
+            ],
+        },
     },
     {
         "id": "hist_08",
@@ -699,17 +695,17 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Strip damaged plaster and clean exposed rebar",
                         "Apply anti-rust chemical coating to steel reinforcement",
-                        "Lay high-strength concrete plaster and waterproof coat"
+                        "Lay high-strength concrete plaster and waterproof coat",
                     ],
                     "success_metrics": [
                         "Eliminated structural leakages in classrooms",
-                        "Structural integrity certificate issued by civil engineer"
+                        "Structural integrity certificate issued by civil engineer",
                     ],
                     "timeline_decay_rate": 0.03,
-                    "alternative": "Temporary tar sheet covering (fails under heavy rains)."
+                    "alternative": "Temporary tar sheet covering (fails under heavy rains).",
                 }
-            ]
-        }
+            ],
+        },
     },
     {
         "id": "hist_09",
@@ -736,17 +732,17 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Remove dumped concrete and bricks using heavy loaders",
                         "Level and plant native saplings along the edge",
-                        "Erect 2m high precast concrete fencing"
+                        "Erect 2m high precast concrete fencing",
                     ],
                     "success_metrics": [
                         "Zero debris detected inside forest boundary zone",
-                        "Installation of permanent warning CCTV cameras"
+                        "Installation of permanent warning CCTV cameras",
                     ],
                     "timeline_decay_rate": 0.05,
-                    "alternative": "Simple clearing without fence (debris returns in 48 hours)."
+                    "alternative": "Simple clearing without fence (debris returns in 48 hours).",
                 }
-            ]
-        }
+            ],
+        },
     },
     {
         "id": "hist_10",
@@ -773,17 +769,17 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Demolish interior partitions to expand triage lobby",
                         "Procure 15 heavy-duty hydraulic stretchers",
-                        "Deploy digital queue management display system"
+                        "Deploy digital queue management display system",
                     ],
                     "success_metrics": [
                         "Average patient check-in wait time reduced by 40%",
-                        "Zero stretcher shortage incidents in emergency bay"
+                        "Zero stretcher shortage incidents in emergency bay",
                     ],
                     "timeline_decay_rate": 0.04,
-                    "alternative": "Redirecting ambulances to other wards (extends transit risks)."
+                    "alternative": "Redirecting ambulances to other wards (extends transit risks).",
                 }
-            ]
-        }
+            ],
+        },
     },
     {
         "id": "hist_11",
@@ -810,17 +806,17 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Construct brick-and-mortar pump house chamber",
                         "Install twin 50HP centrifugal booster pumps",
-                        "Integrate telemetry control panel with SCADA system"
+                        "Integrate telemetry control panel with SCADA system",
                     ],
                     "success_metrics": [
                         "Static pressure increased by 1.2 bar at tail-end nodes",
-                        "Consistent 2-hour daily supply window maintained"
+                        "Consistent 2-hour daily supply window maintained",
                     ],
                     "timeline_decay_rate": 0.03,
-                    "alternative": "Deploying water tankers daily (expensive, high recurring costs)."
+                    "alternative": "Deploying water tankers daily (expensive, high recurring costs).",
                 }
-            ]
-        }
+            ],
+        },
     },
     {
         "id": "hist_12",
@@ -847,17 +843,17 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Scarify damaged concrete surfaces using road headers",
                         "Apply high-durability mastic asphalt concrete mix",
-                        "Paint thermoplastic reflective lane lines"
+                        "Paint thermoplastic reflective lane lines",
                     ],
                     "success_metrics": [
                         "Complete restoration of toll approach lane leveling",
-                        "Reduced average transit delays at toll gates"
+                        "Reduced average transit delays at toll gates",
                     ],
                     "timeline_decay_rate": 0.04,
-                    "alternative": "Paver block installation (prone to sinking under truck loads)."
+                    "alternative": "Paver block installation (prone to sinking under truck loads).",
                 }
-            ]
-        }
+            ],
+        },
     },
     {
         "id": "hist_13",
@@ -884,17 +880,17 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Pull new armored copper cables through conduits",
                         "Mount 15 weatherproof high-output LED fixtures",
-                        "Test lighting illumination and grounding"
+                        "Test lighting illumination and grounding",
                     ],
                     "success_metrics": [
                         "Safe underpass transit levels restored for pedestrians",
-                        "Zero dark zones along railway station approach path"
+                        "Zero dark zones along railway station approach path",
                     ],
                     "timeline_decay_rate": 0.03,
-                    "alternative": "Basic wiring fix without protective conduits."
+                    "alternative": "Basic wiring fix without protective conduits.",
                 }
-            ]
-        }
+            ],
+        },
     },
     {
         "id": "hist_14",
@@ -921,17 +917,17 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Open inspection chamber covers and vent gases safely",
                         "Apply high-pressure sewer jetting machine",
-                        "Eradicate root intrusion using specialized cutters"
+                        "Eradicate root intrusion using specialized cutters",
                     ],
                     "success_metrics": [
                         "Complete clearance of line backing and free flow",
-                        "Elimination of sanitary backup at street level"
+                        "Elimination of sanitary backup at street level",
                     ],
                     "timeline_decay_rate": 0.05,
-                    "alternative": "Manual rodding (ineffective against dense root blockages)."
+                    "alternative": "Manual rodding (ineffective against dense root blockages).",
                 }
-            ]
-        }
+            ],
+        },
     },
     {
         "id": "hist_15",
@@ -958,17 +954,17 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Reconstruct internal brick dividers and partition doors",
                         "Install low-flow flushing valves and water basins",
-                        "Hook up to primary water storage booster tanks"
+                        "Hook up to primary water storage booster tanks",
                     ],
                     "success_metrics": [
                         "Daily sanitation maintenance schedule deployed",
-                        "Uninterrupted clean running water supply verified"
+                        "Uninterrupted clean running water supply verified",
                     ],
                     "timeline_decay_rate": 0.04,
-                    "alternative": "Repairing cosmetic fixtures only (plumbing leaks remain)."
+                    "alternative": "Repairing cosmetic fixtures only (plumbing leaks remain).",
                 }
-            ]
-        }
+            ],
+        },
     },
     {
         "id": "hist_16",
@@ -995,16 +991,16 @@ HISTORICAL_MISSIONS: list[dict[str, Any]] = [
                     "action_items": [
                         "Excavate sinking soft clay sections and lay dry aggregates",
                         "Lay M35 grade ready-mix cement concrete",
-                        "Apply curing compound and cure with wet gunny bags"
+                        "Apply curing compound and cure with wet gunny bags",
                     ],
                     "success_metrics": [
                         "Concrete compression strength test passing",
-                        "Complete leveling of dairy transportation corridor"
+                        "Complete leveling of dairy transportation corridor",
                     ],
                     "timeline_decay_rate": 0.03,
-                    "alternative": "Asphalt patching (highly prone to sinking in waterlogged forest soil)."
+                    "alternative": "Asphalt patching (highly prone to sinking in waterlogged forest soil).",
                 }
-            ]
-        }
-    }
+            ],
+        },
+    },
 ]

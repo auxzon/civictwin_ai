@@ -259,4 +259,3 @@ class FirestoreRepository:
         """Increment a constituency's budget_utilized (called once a plan is implemented)."""
         doc_ref = self._client.collection(_CONSTITUENCIES_COLLECTION).document(constituency_id)
         doc_ref.update({"budget_utilized": firestore.Increment(additional_amount)})
-
