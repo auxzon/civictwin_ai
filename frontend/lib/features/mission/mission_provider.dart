@@ -84,6 +84,11 @@ class MissionController extends StateNotifier<MissionControllerState> {
       uiNotifier.updateState(OperationalState.idle);
     }
   }
+
+  void setMissionResponse(MissionResponse response) {
+    state = state.copyWith(response: response);
+    _ref.read(appUIStateProvider.notifier).updateState(OperationalState.planLoaded);
+  }
 }
 
 final missionControllerProvider =

@@ -21,6 +21,9 @@ from core.logging import get_logger
 from core.security import verify_firebase_token
 from domain.schemas.requests import MissionGenerationRequest
 from domain.schemas.responses import (
+    MapLayersResponse,
+    MapSignalResponse,
+    MapWardResponse,
     MissionBrief,
     MissionHistoryItem,
     MissionHistoryListResponse,
@@ -183,3 +186,26 @@ async def get_mission_history(
     return MissionHistoryListResponse(
         items=[MissionHistoryItem.model_validate(item) for item in raw_items]
     )
+
+
+@router.get(
+    "/constituency/{constituency_id}/map_layers",
+    response_model=MapLayersResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def get_map_layers(
+    constituency_id: str,
+    user_id: str = Depends(verify_firebase_token),
+    repo: FirestoreRepository = Depends(_get_firestore_repository),
+) -> MapLayersResponse:
+    """
+    Fetch ward polygons and open signals for a constituency.
+    Satisfies Decision 8: served through backend APIs only.
+    """
+    wards = await repo.get_wards(constituency_id)
+    signals = await repo.get_all_signals(constituency_id)
+    return MapLayersResponse(
+        wards=[MapWardResponse(**w.model_dump()) for w in wards],
+        signals=[MapSignalResponse(**s.model_dump()) for s in signals]
+    )
+

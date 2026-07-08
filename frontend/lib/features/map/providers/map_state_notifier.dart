@@ -1,6 +1,24 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../authentication/auth_provider.dart';
+
+class MapLayersData {
+  MapLayersData({required this.wards, required this.signals});
+  final List<dynamic> wards;
+  final List<dynamic> signals;
+}
+
+final mapLayersProvider = FutureProvider.family<MapLayersData, String>((ref, constituencyId) async {
+  final apiClient = ref.watch(apiClientProvider);
+  final response = await apiClient.get('/constituency/$constituencyId/map_layers');
+  return MapLayersData(
+    wards: response['wards'] as List<dynamic>,
+    signals: response['signals'] as List<dynamic>,
+  );
+});
+
+
 /// Unified state machine states (EDD V2, Document 01: "Complete Unified
 /// State Machine"). This enum and the notifier below are specified
 /// verbatim in Document 05 and must not be altered without an approved
@@ -57,6 +75,10 @@ class AppUIStateNotifier extends StateNotifier<AppUIState> {
 
   void loadSignals(List<Marker> markers) {
     state = state.copyWith(signalMarkers: markers.toSet());
+  }
+
+  void loadWards(List<Polygon> polygons) {
+    state = state.copyWith(wardPolygons: polygons.toSet());
   }
 
   void highlightWard(Polygon wardPolygon, LatLng center) {

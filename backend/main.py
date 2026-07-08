@@ -34,9 +34,13 @@ def _initialize_firebase_admin() -> None:
         logger.info("Firebase Admin SDK already initialized; skipping.")
         return
 
-    cred = firebase_admin.credentials.Certificate(settings.google_application_credentials)
-    firebase_admin.initialize_app(cred, options={"projectId": settings.firebase_project_id})
-    logger.info("Firebase Admin SDK initialized for project '%s'.", settings.firebase_project_id)
+    if settings.google_application_credentials:
+        cred = firebase_admin.credentials.Certificate(settings.google_application_credentials)
+        firebase_admin.initialize_app(cred, options={"projectId": settings.firebase_project_id})
+        logger.info("Firebase Admin SDK initialized with service account for project '%s'.", settings.firebase_project_id)
+    else:
+        firebase_admin.initialize_app(options={"projectId": settings.firebase_project_id})
+        logger.info("Firebase Admin SDK initialized with Application Default Credentials (ADC) for project '%s'.", settings.firebase_project_id)
 
 
 @asynccontextmanager

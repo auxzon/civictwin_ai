@@ -29,5 +29,9 @@ class AuthService {
     );
   }
 
+  Future<UserCredential> signInWithCustomToken(String token) {
+    return _firebaseAuth.signInWithCustomToken(token);
+  }
+
   Future<void> signOut() => _firebaseAuth.signOut();
 }

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/theme/app_theme.dart';
+import 'core/theme/design_system.dart';
+import 'core/widgets/civictwin_error_state.dart';
+import 'core/widgets/civictwin_spinner.dart';
 import 'features/authentication/auth_provider.dart';
 import 'features/authentication/sign_in_screen.dart';
 import 'features/map/map_screen.dart';
@@ -21,6 +24,7 @@ class CivicTwinApp extends ConsumerWidget {
 }
 
 /// Shows [SignInScreen] until a user is authenticated, then [MapScreen].
+/// Loading and error states use design-system components for visual consistency.
 class _AuthGate extends ConsumerWidget {
   const _AuthGate();
 
@@ -30,10 +34,28 @@ class _AuthGate extends ConsumerWidget {
 
     return authState.when(
       data: (user) => user == null ? const SignInScreen() : const MapScreen(),
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (error, _) =>
-          Scaffold(body: Center(child: Text('Authentication error: $error'))),
+      loading: () => const Scaffold(
+        backgroundColor: AppDesignSystem.brandObsidianBg,
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CivicTwinSpinner(size: 40),
+              AppDesignSystem.height16,
+              Text(
+                'Initializing CivicTwin AI...',
+                style: AppDesignSystem.body,
+              ),
+            ],
+          ),
+        ),
+      ),
+      error: (error, _) => Scaffold(
+        backgroundColor: AppDesignSystem.brandObsidianBg,
+        body: CivicTwinErrorState(
+          errorText: 'Authentication error: $error',
+        ),
+      ),
     );
   }
 }

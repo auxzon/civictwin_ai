@@ -239,3 +239,37 @@ def test_get_mission_history_requires_authentication() -> None:
         )
 
     assert response.status_code in (400, 401, 422)
+
+
+def test_get_map_layers_success(client_with_mocks) -> None:
+    client, mock_repo, _ = client_with_mocks
+    mock_repo.get_wards.return_value = [_sample_ward()]
+    mock_repo.get_all_signals.return_value = [_sample_signal()]
+
+    response = client.get(
+        "/api/v1/constituency/const_mumbai_north/map_layers"
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert "wards" in body
+    assert "signals" in body
+    assert len(body["wards"]) == 1
+    assert body["wards"][0]["id"] == "ward_14"
+    assert len(body["signals"]) == 1
+    assert body["signals"][0]["id"] == "sig_8829"
+    mock_repo.get_wards.assert_awaited_once_with("const_mumbai_north")
+    mock_repo.get_all_signals.assert_awaited_once_with("const_mumbai_north")
+
+
+def test_get_map_layers_requires_authentication() -> None:
+    from main import app
+
+    app.dependency_overrides.clear()
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/v1/constituency/const_mumbai_north/map_layers"
+        )
+
+    assert response.status_code in (400, 401, 422)
+

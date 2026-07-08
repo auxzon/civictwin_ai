@@ -227,7 +227,36 @@ class FirestoreRepository:
 
         return results
 
+    async def get_all_signals(self, constituency_id: str) -> list[Signal]:
+        """Fetch all open signals for a constituency."""
+        docs = (
+            self._client.collection(_CONSTITUENCIES_COLLECTION)
+            .document(constituency_id)
+            .collection(_SIGNALS_SUBCOLLECTION)
+            .where(filter=FieldFilter("status", "==", "Open"))
+            .stream()
+        )
+
+        signals: list[Signal] = []
+        for doc in docs:
+            data = doc.to_dict()
+            coords = _geopoint_to_model(data["coords"])
+            signals.append(
+                Signal(
+                    id=doc.id,
+                    ward_id=data["ward_id"],
+                    category=data["category"],
+                    severity=data["severity"],
+                    coords=coords,
+                    description=data["description"],
+                    status=data["status"],
+                    timestamp=data["timestamp"],
+                )
+            )
+        return signals
+
     async def update_budget_utilized(self, constituency_id: str, additional_amount: int) -> None:
         """Increment a constituency's budget_utilized (called once a plan is implemented)."""
         doc_ref = self._client.collection(_CONSTITUENCIES_COLLECTION).document(constituency_id)
         doc_ref.update({"budget_utilized": firestore.Increment(additional_amount)})
+

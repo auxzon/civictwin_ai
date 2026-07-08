@@ -13,6 +13,9 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from domain.models.firestore import GeoPointModel
+
+
 
 class MissionBrief(BaseModel):
     """A single recommended plan, as returned to the Flutter client."""
@@ -68,3 +71,28 @@ class MissionHistoryListResponse(BaseModel):
     """Response body for GET /mission/history."""
 
     items: list[MissionHistoryItem]
+
+
+class MapWardResponse(BaseModel):
+    id: str
+    ward_number: str
+    name: str
+    population: int
+    critical_infrastructure_count: int
+    polygon_coordinates: list[GeoPointModel]
+
+
+class MapSignalResponse(BaseModel):
+    id: str
+    ward_id: str
+    category: str
+    severity: int
+    coords: GeoPointModel
+    description: str
+    status: str
+
+
+class MapLayersResponse(BaseModel):
+    wards: list[MapWardResponse]
+    signals: list[MapSignalResponse]
+

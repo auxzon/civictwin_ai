@@ -1,23 +1,25 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
-/// This file must be regenerated via the FlutterFire CLI before running
-/// the app — it is intentionally left as a loud failure rather than
-/// filled with fabricated placeholder API keys, which would silently
-/// "work" until a real Firebase call is made and fail confusingly.
-///
-/// To generate the real file:
-///   dart pub global activate flutterfire_cli
-///   flutterfire configure
-///
-/// That command replaces this entire file with your actual project's
-/// `DefaultFirebaseOptions` class, using the same class/member shape
-/// referenced from `main.dart` (`DefaultFirebaseOptions.currentPlatform`).
+/// Default [FirebaseOptions] for use with the Firebase SDK.
+/// Manually populated from the verified project apps config to bypass interactive CLI setup.
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
+    if (kIsWeb) {
+      return web;
+    }
     throw UnsupportedError(
-      'firebase_options.dart has not been generated for this project yet. '
-      'Run `flutterfire configure` from the frontend/ directory to '
-      'generate real Firebase configuration before running the app.',
+      'DefaultFirebaseOptions are not supported for this platform.',
     );
   }
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyBNaXil5EAHhpH2xD6UP5SraFEn2c1o6Qk',
+    appId: '1:24823441543:web:b5030cee5dc3c045963022',
+    messagingSenderId: '24823441543',
+    projectId: 'civictwin-ai-c0e63',
+    authDomain: 'civictwin-ai-c0e63.firebaseapp.com',
+    storageBucket: 'civictwin-ai-c0e63.firebasestorage.app',
+    measurementId: 'G-G93LKC59BM',
+  );
 }

@@ -87,6 +87,41 @@ def seed_signals(db: firestore.Client) -> None:
     logger.info("Seeded %d signal documents.", len(SIGNALS))
 
 
+def seed_historical_missions(db: firestore.Client) -> None:
+    """Write historical missions into the mission_history collection, linked to demo user UID."""
+    try:
+        from firebase_admin import auth
+        user = auth.get_user_by_email("test@civictwin.dev")
+        user_id = user.uid
+    except Exception as e:
+        logger.warning("Could not fetch test@civictwin.dev UID: %s. Using fallback.", e)
+        user_id = "test_user_fallback_uid"
+
+    from datetime import datetime, UTC, timedelta
+    from scripts.mock_data import HISTORICAL_MISSIONS
+    
+    collection_ref = db.collection("mission_history")
+    
+    # Clean up existing history to prevent duplicates
+    docs = collection_ref.where("user_id", "==", user_id).stream()
+    for doc in docs:
+        doc.reference.delete()
+        
+    for item in HISTORICAL_MISSIONS:
+        created_at = datetime.now(UTC) - timedelta(days=item["days_ago"])
+        payload = {
+            "user_id": user_id,
+            "constituency_id": CONSTITUENCY["id"],
+            "command": item["command"],
+            "selected_plan_payload": item["selected_plan_payload"],
+            "is_implemented": item["is_implemented"],
+            "created_at": created_at,
+        }
+        collection_ref.document(item["id"]).set(payload)
+        
+    logger.info("Seeded %d historical mission documents for UID: %s.", len(HISTORICAL_MISSIONS), user_id)
+
+
 def run() -> None:
     """Execute the full seeding sequence."""
     db = _initialize_firebase()
@@ -96,6 +131,7 @@ def run() -> None:
     seed_constituency(db)
     seed_wards(db)
     seed_signals(db)
+    seed_historical_missions(db)
 
     logger.info("Firestore seed completed successfully.")
 
