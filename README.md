@@ -4,7 +4,7 @@
 
 CivicTwin AI is an enterprise-grade platform that transforms civic data into live spatial intelligence. Designed for public officials and city planners, it enables seamless tracking of infrastructure projects, real-time analytics, and AI-driven mission planning on a highly interactive 3D map.
 
-## 🚀 Key Features
+##  Key Features
 
 - **Spatial Intelligence:** Immersive 3D map interface built with Google Maps and Flutter.
 - **AI Mission Generation:** Harness the power of Gemini 2.5 Pro to generate dynamic, actionable missions based on civic context.
@@ -12,7 +12,7 @@ CivicTwin AI is an enterprise-grade platform that transforms civic data into liv
 - **Enterprise Security:** Firebase Authentication ensures only authorized officials can access constituent data.
 - **Cross-Platform:** Beautiful, responsive experience accessible anywhere via the Web.
 
-## 🏗️ System Architecture
+##  System Architecture
 
 CivicTwin AI uses a modern, serverless architecture optimized for speed and scalability:
 
@@ -28,7 +28,7 @@ CivicTwin AI uses a modern, serverless architecture optimized for speed and scal
 3. **AI Processing:** Gemini analyzes the spatial context and generates a structured, actionable mission.
 4. **Real-time Delivery:** Firestore streams the new mission data directly to the Flutter UI via WebSockets.
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 - **Google Cloud Platform:** Cloud Run, Cloud Build
 - **Firebase:** Firestore, Authentication, Hosting
@@ -73,7 +73,7 @@ civictwin_ai/
    uvicorn main:app --reload
    ```
 
-## 🔐 Demo Login
+##  Demo Login
 
 The application features a **Continue Demo** button for instant access during the hackathon evaluation.
 Alternatively, use the following credentials to explore the platform:
@@ -82,7 +82,7 @@ Alternatively, use the following credentials to explore the platform:
 
 ## 📸 Screenshots
 
-*(Hackathon organizers: Please view the live demo to experience the application in full fidelity.)*
+
 
 | Dashboard View | Map Interface | AI Mission Generation |
 | :---: | :---: | :---: |
